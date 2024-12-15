@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Demo</title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width" />
+    <base href="/" />
+    <link rel="stylesheet" type="text/css"  href="/webjars/bootstrap/css/bootstrap.min.css" />
+    <script type="application/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="application/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+    <script type="application/javascript" src="/webjars/js-cookie/js.cookie.js"></script>
+
+</head>
+<body>
+<div th:if="${hostname}">
+    <h2 th:text="${hostname}"/>
+</div>
+
+<h1>Upload Form</h1>
+
+<div th:if="${message}">
+    <h2 th:text="${message}"/>
+</div>
+<h1>Login</h1>
+<div class="container unauthenticated">
+    <div>
+        With GitHub: <a href="/oauth2/authorization/github">click here</a>
+    </div>
+    <div>
+        With Google: <a href="/oauth2/authorization/google">click here</a>
+    </div>
+</div>
+<div class="container authenticated" style="display: none">
+    Logged in as: <span id="user"></span>
+    <div>
+        <button onClick="logout()" class="btn btn-primary">Logout</button>
+    </div>
+
+    <div>
+        <button  onClick="window.location.href = '/files';" class="btn btn-primary">Files</button>
+    </div>
+</div>
+<script type="application/javascript">
+    $.get("/user", function(data) {
+        $("#user").html(data.name);
+        $(".unauthenticated").hide();
+        $(".authenticated").show();
+    });
+    var logout = function() {
+        // Get CSRF token from cookie
+        var csrfToken = Cookies.get('XSRF-TOKEN');
+
+        $.ajax({
+            type: 'POST',
+            url: '/logout',
+            beforeSend: function(xhr) {
+                if (csrfToken) {
+                    xhr.setRequestHeader("X-XSRF-TOKEN", csrfToken);
+                }
+            },
+            success: function() {
+                $("#user").html('');
+                $(".unauthenticated").show();
+                $(".authenticated").hide();
+
+            },
+            error: function(xhr) {
+                console.error('Logout failed:', xhr.status, xhr.statusText);
+            }
+        });
+        return true;
+    }
+</script>
+</body>
+</html>
